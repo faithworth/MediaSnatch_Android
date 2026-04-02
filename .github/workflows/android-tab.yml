@@ -1,0 +1,63 @@
+name: Build MediaSnatch APK
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: mediasnatch_flutter
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Setup Android SDK
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.1.8937393"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: stable
+          cache: true
+
+      - name: Flutter Doctor
+        run: flutter doctor -v
+
+      - name: Clean
+        run: flutter clean
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Fix Gradle permissions
+        run: chmod +x android/gradlew
+
+      - name: Build APK
+        run: flutter build apk --release --split-per-abi --verbose
+
+      - name: Build Universal APK
+        run: flutter build apk --release
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: mediasnatch-builds
+          path: mediasnatch_flutter/build/app/outputs/flutter-apk/*.apk
