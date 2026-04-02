@@ -12,10 +12,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: mediasnatch_flutter
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,11 +49,8 @@ jobs:
       - name: Build APK
         run: flutter build apk --release --split-per-abi --verbose
 
-      - name: Build Universal APK
-        run: flutter build apk --release
-
       - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
           name: mediasnatch-builds
-          path: mediasnatch_flutter/build/app/outputs/flutter-apk/*.apk
+          path: build/app/outputs/flutter-apk/*.apk
