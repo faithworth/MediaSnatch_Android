@@ -1,8 +1,8 @@
-name: Build MediaSnatch APK
+name: Build MediaSnatch APK (Stable)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 env:
@@ -17,49 +17,70 @@ jobs:
         working-directory: mediasnatch_flutter
 
     steps:
+      # 1. Checkout
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2. Java (required for Gradle)
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
+          cache: gradle
 
-      - name: Cache Flutter
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-          key: flutter-${{ runner.os }}-${{ hashFiles('mediasnatch_flutter/pubspec.lock') }}
+      # 3. Install Android SDK components explicitly (CRITICAL)
+      - name: Setup Android SDK
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" \
+                     "platforms;android-33" \
+                     "build-tools;33.0.2" \
+                     "ndk;25.1.8937393"
 
+      # 4. Flutter setup
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: stable
+          cache: true
 
+      # 5. Verify environment
       - name: Flutter Doctor
-        run: flutter doctor
+        run: flutter doctor -v
 
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Clean
+      # 6. Clean (important for your project)
+      - name: Clean project
         run: flutter clean
 
-      - name: Build APK (split per ABI)
-        run: flutter build apk --release --split-per-abi
+      # 7. Dependencies
+      - name: Install dependencies
+        run: flutter pub get
 
+      # 8. Fix Gradle permissions (Linux issue)
+      - name: Fix Gradle permissions
+        run: chmod +x android/gradlew
+
+      # 9. Build APKs (ABI split = best for Tecno Pop 7)
+      - name: Build APK (split per ABI)
+        run: flutter build apk --release --split-per-abi --verbose
+
+      # 10. Build universal APK (fallback)
       - name: Build Universal APK
         run: flutter build apk --release
 
-      - name: Build AAB
+      # 11. Build AAB (Play Store)
+      - name: Build App Bundle
         run: flutter build appbundle --release
 
+      # 12. Upload artifacts
       - name: Upload builds
         uses: actions/upload-artifact@v4
         with:
           name: mediasnatch-builds
+          path: |
+            mediasnatch_flutter/build/app/outputs/flutter-apk/*.apk
+            mediasnatch_flutter/build/app/outputs/bundle/release/*.aab
           path: |
             mediasnatch_flutter/build/app/outputs/flutter-apk/*.apk
             mediasnatch_flutter/build/app/outputs/bundle/release/*.aab
