@@ -5,6 +5,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,62 +17,49 @@ jobs:
         working-directory: mediasnatch_flutter
 
     steps:
-      # 1. Checkout repo
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Setup Java (required for Gradle)
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3. Cache Flutter + Pub (faster builds)
       - name: Cache Flutter
         uses: actions/cache@v4
         with:
           path: |
             ~/.pub-cache
-            ~/.flutter
-          key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          key: flutter-${{ runner.os }}-${{ hashFiles('mediasnatch_flutter/pubspec.lock') }}
 
-      # 4. Install Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: stable
 
-      # 5. Verify Flutter
       - name: Flutter Doctor
         run: flutter doctor
 
-      # 6. Install dependencies
       - name: Get dependencies
         run: flutter pub get
 
-      # 7. Clean project (avoids weird Gradle bugs)
       - name: Clean
         run: flutter clean
 
-      # 8. Build APK (optimized per device)
       - name: Build APK (split per ABI)
         run: flutter build apk --release --split-per-abi
 
-      # 9. Build universal APK (fallback)
       - name: Build Universal APK
         run: flutter build apk --release
 
-      # 10. Build App Bundle (Play Store ready)
       - name: Build AAB
         run: flutter build appbundle --release
 
-      # 11. Upload artifacts
-      - name: Upload APKs & AAB
+      - name: Upload builds
         uses: actions/upload-artifact@v4
         with:
           name: mediasnatch-builds
           path: |
             mediasnatch_flutter/build/app/outputs/flutter-apk/*.apk
             mediasnatch_flutter/build/app/outputs/bundle/release/*.aab
-   
