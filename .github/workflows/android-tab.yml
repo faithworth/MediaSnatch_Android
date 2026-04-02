@@ -13,44 +13,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repo
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2. Setup Java
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-          cache: gradle
 
-      - name: Setup Android SDK
-        run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.1.8937393"
-
+      # 3. Setup Flutter (this already handles Android SDK)
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: stable
           cache: true
 
-      - name: Flutter Doctor
-        run: flutter doctor -v
+      # 4. Verify tools exist
+      - name: Check versions
+        run: |
+          flutter --version
+          dart --version
 
-      - name: Clean
-        run: flutter clean
-
+      # 5. Install dependencies
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Fix Gradle permissions
+      # 6. Fix Gradle permission
+      - name: Fix Gradle
         run: chmod +x android/gradlew
 
+      # 7. Build APK
       - name: Build APK
-        run: flutter build apk --release --split-per-abi --verbose
+        run: flutter build apk --release --split-per-abi
 
+      # 8. Upload APK
       - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
-          name: mediasnatch-builds
+          name: mediasnatch-apk
           path: build/app/outputs/flutter-apk/*.apk
