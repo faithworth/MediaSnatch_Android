@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/downloader.dart';
 import '../services/config.dart';
-import '../widgets/download_terminal.dart';
 import 'download_mixin.dart';
 
 class VideoScreen extends StatefulWidget {
