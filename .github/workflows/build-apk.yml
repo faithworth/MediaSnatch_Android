@@ -47,6 +47,7 @@ jobs:
         run: |
           mkdir -p /tmp/gradle-wrapper-gen
           cd /tmp/gradle-wrapper-gen
+          touch settings.gradle
           gradle wrapper --gradle-version 8.3
           cp -r gradlew gradlew.bat gradle "$GITHUB_WORKSPACE/android/"
           chmod +x "$GITHUB_WORKSPACE/android/gradlew"
