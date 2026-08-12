@@ -1,0 +1,67 @@
+name: Build MediaSnatch APK
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "stable"
+          cache: true
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run tests
+        run: |
+          if [ -d "test" ]; then
+            flutter test
+          else
+            echo "No test/ directory found — skipping."
+          fi
+
+      # The committed repo only ships gradle-wrapper.properties (no gradlew /
+      # gradle-wrapper.jar). Regenerate the wrapper on the runner using the
+      # Gradle preinstalled on GitHub's Ubuntu image, matching the version
+      # already pinned in gradle-wrapper.properties.
+      - name: Regenerate Gradle wrapper
+        working-directory: android
+        run: |
+          gradle wrapper --gradle-version 8.3
+          chmod +x gradlew
+
+      - name: Build release APK
+        run: flutter build apk --release --verbose
+
+      - name: Build split-per-ABI APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mediasnatch-apk
+          path: build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
