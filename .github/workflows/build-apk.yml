@@ -20,17 +20,12 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      # subosito/flutter-action occasionally fails to resolve the "stable"
-      # version manifest from Flutter's release server — a known, transient
-      # upstream flakiness (https://github.com/subosito/flutter-action/issues/188).
-      # If this step fails with "Unable to determine Flutter version", just
-      # re-run the job; it's not a problem with this repo's configuration.
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: "stable"
           cache: true
-          
+
       - name: Flutter doctor
         run: flutter doctor -v
 
@@ -48,10 +43,6 @@ jobs:
             echo "No test/ directory found — skipping."
           fi
 
-      # The committed repo only ships gradle-wrapper.properties (no gradlew /
-      # gradle-wrapper.jar). Regenerate the wrapper on the runner using the
-      # Gradle preinstalled on GitHub's Ubuntu image, matching the version
-      # already pinned in gradle-wrapper.properties.
       - name: Regenerate Gradle wrapper
         run: |
           mkdir -p /tmp/gradle-wrapper-gen
