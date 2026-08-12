@@ -20,19 +20,16 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      # subosito/flutter-action intermittently fails to resolve the "stable"
-      # version manifest from Flutter's release server (a known upstream
-      # flakiness: https://github.com/subosito/flutter-action/issues/188).
-      # Wrap it in a retry so a transient network hiccup doesn't fail the run.
+      # subosito/flutter-action occasionally fails to resolve the "stable"
+      # version manifest from Flutter's release server — a known, transient
+      # upstream flakiness (https://github.com/subosito/flutter-action/issues/188).
+      # If this step fails with "Unable to determine Flutter version", just
+      # re-run the job; it's not a problem with this repo's configuration.
       - name: Setup Flutter
-        uses: Wandalen/wretry.action@v3
+        uses: subosito/flutter-action@v2
         with:
-          action: subosito/flutter-action@v2
-          with: |
-            flutter-version: "stable"
-            cache: true
-          attempt_limit: 3
-          attempt_delay: 15000
+          flutter-version: "stable"
+          cache: true
 
       - name: Flutter doctor
         run: flutter doctor -v
