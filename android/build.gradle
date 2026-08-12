@@ -1,14 +1,9 @@
-buildscript {
-    ext.kotlin_version = '1.9.10'
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
+// AGP and Kotlin versions are now declared declaratively in settings.gradle's
+// `plugins {}` block (required by current Flutter Gradle plugin loading).
+// kotlin_version is kept here only so android/app/build.gradle's
+// `$kotlin_version` dependency reference still resolves — keep it in sync
+// with the version pinned in settings.gradle.
+ext.kotlin_version = '1.9.10'
 
 allprojects {
     repositories {
