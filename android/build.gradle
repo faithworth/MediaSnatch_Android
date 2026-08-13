@@ -3,8 +3,7 @@
 // kotlin_version is kept here only so android/app/build.gradle's
 // `$kotlin_version` dependency reference still resolves — keep it in sync
 // with the version pinned in settings.gradle.
-ext.kotlin_version = '2.0.21'
-
+ext.kotlin_version = '2.2.20'
 allprojects {
     repositories {
         google()
